@@ -1,0 +1,34 @@
+﻿<!--¡Asegúrate de que este namespace coincida con el de tu proyecto!-->
+@model List<MiTiendaConLogin.Models.Product>
+
+@{
+    ViewData["Title"] = "Mi Tienda";
+}
+
+<div class="text-center">
+    <h1 class="display-4">¡Bienvenido a Mi Tienda!</h1>
+    <p>Los mejores componentes de PC.</p>
+</div>
+
+<hr />
+
+<div class="container">
+    <div class="row">
+        @foreach (var producto in Model)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@producto.Name</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            Precio: ₡@producto.Price.ToString("N0")
+                        </h6>
+                        <a href="#" class="btn btn-primary">
+                            Agregar al Carrito
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
