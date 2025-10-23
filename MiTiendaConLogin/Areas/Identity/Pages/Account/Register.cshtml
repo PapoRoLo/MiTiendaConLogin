@@ -1,0 +1,106 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Registrar";
+    Layout = "/Views/Shared/_Layout.cshtml"; // Usa el layout principal
+}
+
+<style>
+    /* Copiamos el mismo bloque de CSS de la página de Login */
+    body {
+        background-color: #0d1117;
+    }
+
+    .card-futuristic {
+        background: linear-gradient(135deg, #1f2a40, #0a0e14);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        color: #e0e6f1;
+        padding: 30px;
+        max-width: 450px; /* Ancho máximo para el card */
+        width: 100%;
+        border: 1px solid #0056b3;
+    }
+
+    .card-futuristic h4,
+    .card-futuristic label,
+    .card-futuristic p,
+    .card-futuristic a {
+        color: #e0e6f1;
+    }
+
+    .card-futuristic .form-control {
+        background-color: rgba(31, 42, 64, 0.7);
+        border: 1px solid #007bff;
+        color: #e0e6f1;
+        border-radius: 8px;
+    }
+
+    .card-futuristic .form-control::placeholder {
+        color: #a0a8b9;
+    }
+
+    .card-futuristic .btn-primary {
+        background: linear-gradient(90deg, #007bff, #0056b3);
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .card-futuristic .btn-primary:hover {
+        background: linear-gradient(90deg, #0056b3, #007bff);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+    }
+
+    .card-futuristic a {
+        color: #00bfff;
+        text-decoration: none;
+    }
+
+    .card-futuristic a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card-futuristic">
+        <h4 class="text-center mb-4">Crear una Nueva Cuenta</h4>
+        <section>
+            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+                
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
+                    <label asp-for="Input.Email" class="form-label">Correo electrónico</label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" />
+                    <label asp-for="Input.Password" class="form-label">Contraseña</label>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" />
+                    <label asp-for="Input.ConfirmPassword" class="form-label">Confirmar Contraseña</label>
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                </div>
+                
+                <div>
+                    <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary mb-3">Registrar</button>
+                </div>
+
+                <p class="text-center">
+                    <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">¿Ya tienes una cuenta? Inicia sesión</a>
+                </p>
+            </form>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

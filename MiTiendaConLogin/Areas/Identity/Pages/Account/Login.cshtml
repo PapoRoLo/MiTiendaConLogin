@@ -1,0 +1,109 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "/Views/Shared/_Layout.cshtml"; // Asegura que usa el layout principal
+}
+
+<style>
+    body {
+        background-color: #0d1117; /* Fondo general oscuro */
+    }
+
+    .card-futuristic {
+        background: linear-gradient(135deg, #1f2a40, #0a0e14); /* Degradado azul oscuro a negro */
+        border-radius: 15px; /* Esquinas más redondeadas */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Sombra más profunda */
+        color: #e0e6f1; /* Texto blanco-azulado */
+        padding: 30px;
+        max-width: 450px; /* Ancho máximo para el card */
+        width: 100%;
+        border: 1px solid #0056b3; /* Borde sutil */
+    }
+
+    .card-futuristic h4,
+    .card-futuristic label,
+    .card-futuristic p,
+    .card-futuristic a {
+        color: #e0e6f1; /* Asegura que todos los textos sean claros */
+    }
+
+    .card-futuristic .form-control {
+        background-color: rgba(31, 42, 64, 0.7); /* Fondo más transparente y oscuro para inputs */
+        border: 1px solid #007bff; /* Borde azul para inputs */
+        color: #e0e6f1; /* Texto de inputs claro */
+        border-radius: 8px; /* Bordes redondeados para inputs */
+    }
+
+    .card-futuristic .form-control::placeholder {
+        color: #a0a8b9; /* Placeholder más visible */
+    }
+
+    .card-futuristic .btn-primary {
+        background: linear-gradient(90deg, #007bff, #0056b3); /* Degradado para el botón */
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .card-futuristic .btn-primary:hover {
+        background: linear-gradient(90deg, #0056b3, #007bff); /* Efecto hover */
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+    }
+
+    .card-futuristic .text-muted {
+        color: #a0a8b9 !important; /* Muted text más claro */
+    }
+
+    .card-futuristic a {
+        color: #00bfff; /* Enlaces en azul brillante */
+        text-decoration: none;
+    }
+
+    .card-futuristic a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card-futuristic">
+        <h4 class="text-center mb-4">Iniciar Sesión</h4>
+        <section>
+            <form id="account" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
+                    <label asp-for="Input.Email" class="form-label">Correo electrónico</label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
+                    <label asp-for="Input.Password" class="form-label">Contraseña</label>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                <div class="checkbox mb-3">
+                    <label asp-for="Input.RememberMe" class="form-label">
+                        <input class="form-check-input" asp-for="Input.RememberMe" />
+                        @Html.DisplayNameFor(m => m.Input.RememberMe)
+                    </label>
+                </div>
+                <div>
+                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary mb-3">Iniciar Sesión</button>
+                </div>
+                <p class="text-center">
+                    <a id="forgot-password" asp-page="./ForgotPassword">¿Olvidaste tu contraseña?</a>
+                </p>
+                <p class="text-center">
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Registrar una nueva cuenta</a>
+                </p>
+                </form>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

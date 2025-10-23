@@ -20,3 +20,42 @@ html {
 body {
   margin-bottom: 60px;
 }
+/* --- Estilos de Navbar --- */
+
+/* Fondo de la barra de navegación */
+.navbar {
+    background: linear-gradient(135deg, #1f2a40, #0a0e14) !important; /* Mismo degradado que el login */
+    border-bottom: 1px solid #0056b3 !important; /* Borde inferior azul */
+}
+
+/* Título del sitio */
+.navbar-brand {
+    color: #e0e6f1 !important; /* Texto claro */
+    font-weight: bold;
+}
+
+.navbar-brand:hover {
+    color: #ffffff !important;
+}
+
+/* Enlaces (ej. "Home", "Privacy", "Register", "Login") */
+.nav-link {
+    color: #a0a8b9 !important; /* Texto de enlace gris-azulado */
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+/* Enlace activo o al pasar el ratón */
+.nav-link:hover,
+.nav-link.active {
+    color: #00bfff !important; /* Azul brillante al pasar el ratón */
+}
+
+/* Icono del menú hamburguesa (para móviles) */
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(224, 230, 241, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.navbar-toggler {
+    border-color: #0056b3;
+}
