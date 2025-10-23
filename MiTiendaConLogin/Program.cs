@@ -42,8 +42,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// ------------- INICIO DE CÓDIGO PARA CREAR ROL ADMIN -------------
-// Ponemos esto dentro de un "scope" para poder usar los servicios
+// ------------- INICIO DE CÓDIGO PARA CREAR ROLES -------------
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -52,30 +51,33 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // Tarea 1: Crear el rol "Admin" si no existe
-        string adminRoleName = "Admin";
-        if (!await roleManager.RoleExistsAsync(adminRoleName))
+        // Tarea 1: Lista de roles que queremos que existan
+        var roleNames = new[] { "Admin", "ProductManager", "OrderManager" };
+
+        foreach (var roleName in roleNames)
         {
-            await roleManager.CreateAsync(new IdentityRole(adminRoleName));
+            // Crear el rol si no existe
+            if (!await roleManager.RoleExistsAsync(roleName))
+            {
+                await roleManager.CreateAsync(new IdentityRole(roleName));
+            }
         }
 
-        // Tarea 2: Buscar a tu usuario por email
-        string adminEmail = "bran506rolo@gmail.com"; //Usuario administrador
+        // Tarea 2: Asignar el rol "Admin" a tu usuario (como antes)
+        string adminEmail = "bran506rolo@gmail.com"; // Tu email
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
-        // Tarea 3: Asignarle el rol "Admin" a tu usuario, si no lo tiene
-        if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRoleName))
+        if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, "Admin"))
         {
-            await userManager.AddToRoleAsync(adminUser, adminRoleName);
+            await userManager.AddToRoleAsync(adminUser, "Admin");
         }
     }
     catch (Exception ex)
     {
-        // Poner un log aquí si algo falla
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Un error ocurrió al crear el rol de Admin.");
+        logger.LogError(ex, "Un error ocurrió al crear los roles.");
     }
 }
-// ------------- FIN DE CÓDIGO PARA CREAR ROL ADMIN -------------
+// ------------- FIN DE CÓDIGO PARA CREAR ROLES -------------
 
 app.Run();
