@@ -18,7 +18,9 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  background-color: #0d1117; /* El fondo oscuro que hemos usado */
+  color: #e0e6f1;         /* El texto principal será claro */
+  margin-bottom: 60px; 
 }
 /* --- Estilos de Navbar --- */
 
@@ -59,3 +61,8 @@ body {
 .navbar-toggler {
     border-color: #0056b3;
 }
+
+.card-body, .card-title, .card-text, .card-subtitle {
+    color: #212529; /* Color de texto oscuro por defecto */
+}
+

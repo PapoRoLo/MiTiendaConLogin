@@ -26,7 +26,18 @@
                         @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Admin" asp-action="Index" style="color: #ffc107 !important; font-weight: bold;"> PANEL ADMIN </a>
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index" style="color: #ffc107 !important; font-weight: bold;">
+                                    PANEL ADMIN
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("ProductManager")))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Products" asp-action="Index" style="color: #17a2b8 !important;">
+                                    Gestionar Productos
+                                </a>
                             </li>
                         }
                     </ul>

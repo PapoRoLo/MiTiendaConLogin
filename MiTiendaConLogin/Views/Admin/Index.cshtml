@@ -4,7 +4,7 @@
     ViewData["Title"] = "Panel de Administrador";
 }
 
-<div class="container" style="color: #e0e6f1;">
+<div class="container">
     <h1 class="my-4">Panel de Administrador</h1>
     <h3 class="mb-3">Gestionar Usuarios</h3>
 
@@ -21,15 +21,6 @@
             {
                 <tr>
                     <td>@user.Id</td>
-                    <td>@user.Email</td>
-                    <td>
-                        <a asp-controller="Admin" 
-                           asp-action="ResetPassword" 
-                           asp-route-id="@user.Id" 
-                           class="btn btn-sm btn-warning">
-                            Resetear Contraseña
-                        </a>
-                        </td>
                     <td>@user.Email</td>
                     <td>
                         <a asp-controller="Admin" 
