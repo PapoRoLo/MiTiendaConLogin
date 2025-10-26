@@ -1,34 +1,78 @@
-﻿<!--¡Asegúrate de que este namespace coincida con el de tu proyecto!-->
-@model List<MiTiendaConLogin.Models.Product>
+﻿@model IEnumerable<MiTiendaConLogin.Models.Product>
 
 @{
-    ViewData["Title"] = "Mi Tienda";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">¡Bienvenido a Mi Tienda!</h1>
-    <p>Los mejores componentes de PC.</p>
+<style>
+    /* Estilos para las tarjetas de producto */
+    .product-card-futuristic {
+        background: rgba(15, 20, 30, 0.8); /* Fondo oscuro semi-transparente */
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.4), 0 0 5px rgba(0, 191, 255, 0.6); /* Borde de neón azul */
+        color: #e0e6f1; /* Color de texto claro */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 30px; /* Espacio entre tarjetas */
+        border: 1px solid rgba(0, 191, 255, 0.2); /* Borde más sutil */
+    }
+
+        .product-card-futuristic:hover {
+            transform: translateY(-5px); /* Pequeño efecto al pasar el ratón */
+            box-shadow: 0 0 25px rgba(0, 191, 255, 0.6), 0 0 10px rgba(0, 191, 255, 0.8);
+        }
+
+        .product-card-futuristic .card-title {
+            color: #00bfff; /* Título azul brillante */
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 191, 255, 0.8); /* Efecto de brillo */
+        }
+
+        .product-card-futuristic .card-text {
+            color: #a0a8b9; /* Texto de precio un poco más suave */
+            font-size: 1.1em;
+            text-shadow: 0 0 3px rgba(0, 191, 255, 0.5); /* Efecto de brillo */
+        }
+
+        .product-card-futuristic .btn-primary {
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+            .product-card-futuristic .btn-primary:hover {
+                background: linear-gradient(90deg, #0056b3, #007bff);
+                box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+            }
+
+        /* Estilo para las imágenes dentro de las tarjetas */
+        .product-card-futuristic .card-img-top {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            /* Asegura que la imagen tenga un fondo para evitar transparencias indeseadas si la imagen es PNG transparente */
+            background-color: #0a0e14;
+        }
+</style>
+
+<div class="text-center" style="color: #e0e6f1;">
+    <h1 class="display-4 fw-bold">¡Bienvenido a Mi Tienda!</h1>
+    <p class="lead">Los mejores componentes de PC.</p>
 </div>
 
-<hr />
-
-<div class="container">
+<div class="container mt-5">
     <div class="row">
         @foreach (var producto in Model)
         {
-            <div class="col-md-4 mb-3">
-                <div class="card">
+            <div class="col-md-4 mb-4">
+                <div class="card product-card-futuristic">
+                    @* <-- Clase aplicada aquí *@
+                    <img src="@producto.ImageUrl" class="card-img-top" alt="@producto.Name" style="height: 220px; object-fit: cover; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
 
-                    <img src="@producto.ImageUrl" class="card-img-top" alt="@producto.Name" style="height: 200px; object-fit: cover;">
-                    
                     <div class="card-body">
                         <h5 class="card-title">@producto.Name</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">
-                            Precio: ₡@producto.Price.ToString("N0")
-                        </h6>
-                        <a href="#" class="btn btn-primary">
-                            Agregar al Carrito
-                        </a>
+                        <p class="card-text">Precio: @producto.Price.ToString("C", new System.Globalization.CultureInfo("es-CR"))</p> @* <-- Formato de moneda para COSTA RICA *@
+                        <a href="#" class="btn btn-primary">Agregar al Carrito</a> @* <-- Por ahora no hace nada *@
                     </div>
                 </div>
             </div>

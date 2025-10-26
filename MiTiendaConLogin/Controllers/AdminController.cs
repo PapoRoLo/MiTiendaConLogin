@@ -28,41 +28,80 @@ namespace MiTiendaConLogin.Controllers
         // --------- AQUÍ ESTÁ LA LÓGICA DE RESETEO ---------
 
         // Muestra el formulario para resetear la contraseña
+        // GET: /Admin/ResetPassword/id-del-usuario
         public async Task<IActionResult> ResetPassword(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound();
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-            // Pasamos el Email y el ID a la vista
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Creamos un objeto simple para pasar los datos a la vista
             var model = new { UserId = user.Id, Email = user.Email };
             return View(model);
         }
 
+        // POST: /Admin/ResetPassword
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(string userId, string newPassword)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound();
-
-            // 1. Generamos un token de reseteo (como el que se envía por email)
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-            // 2. Usamos ese token para forzar el cambio
-            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
-
-            if (result.Succeeded)
+            if (userId == null || newPassword == null)
             {
-                // ¡Éxito!
+                return RedirectToAction("Index"); // Error simple
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // --- INICIO DE LA LÓGICA DE ADMIN CORRECTA ---
+
+            // 1. Eliminamos cualquier contraseña que el usuario tenga.
+            //    Esto es robusto, funciona incluso si el usuario se registró
+            //    con Google y no tenía una contraseña local.
+            var removeResult = await _userManager.RemovePasswordAsync(user);
+
+            if (!removeResult.Succeeded)
+            {
+                // Si no se pudo quitar (raro), aun así intentamos añadir.
+                // Pero por si acaso, registramos los errores.
+                foreach (var error in removeResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            // 2. Añadimos la nueva contraseña que el Admin escribió.
+            var addResult = await _userManager.AddPasswordAsync(user, newPassword);
+
+            // --- FIN DE LA LÓGICA ---
+
+            if (addResult.Succeeded)
+            {
+                TempData["SuccessMessage"] = $"¡La contraseña para {user.Email} se ha reseteado exitosamente!";
+                // ¡Éxito! Volvemos al panel de admin
                 return RedirectToAction("Index");
             }
 
-            // Si algo falló, muestra los errores
-            foreach (var error in result.Errors)
+            // Si falló (ej. la contraseña es muy débil), volvemos a la página
+            // con los errores para que el admin sepa qué pasó.
+            foreach (var error in addResult.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
-            // (Necesitarás crear una vista simple para esto)
-            return View(new { UserId = user.Id, Email = user.Email });
+
+            // Volvemos a enviar los datos necesarios a la vista
+            var model = new { UserId = user.Id, Email = user.Email };
+            return View(model);
         }
 
         // --- INICIO DE ACCIONES PARA GESTIONAR ROLES ---
