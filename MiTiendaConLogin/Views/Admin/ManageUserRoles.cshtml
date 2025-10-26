@@ -4,21 +4,59 @@
     ViewData["Title"] = "Gestionar Roles";
 }
 
-<div class="container" style="color: #e0e6f1;">
-    <h1 class="my-4">Gestionar Roles</h1>
-    <h4 class="mb-3">Asignando roles para: <strong>@Model.Email</strong></h4>
+<style>
+    .card-futuristic {
+        background: linear-gradient(135deg, #1f2a40, #0a0e14);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        color: #e0e6f1;
+        padding: 30px;
+        border: 1px solid #0056b3;
+    }
 
-    <div class="row">
-        <div class="col-md-6">
-            <form method="post">
-                <input type="hidden" asp-for="UserId" />
-                <input type="hidden" asp-for="Email" />
+        .card-futuristic h4,
+        .card-futuristic h5,
+        .card-futuristic label,
+        .card-futuristic p,
+        .card-futuristic a {
+            color: #e0e6f1;
+        }
 
-                <div class="card bg-dark shadow-sm">
+        .card-futuristic .btn-primary {
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+            .card-futuristic .btn-primary:hover {
+                background: linear-gradient(90deg, #0056b3, #007bff);
+                box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+            }
+
+    .form-check-label {
+        color: #e0e6f1 !important; /* Asegura que las etiquetas del check sean claras */
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card card-futuristic mt-5">
+                <h4 class="my-3 text-center">Gestionar Roles</h4>
+                <h5 class="mb-3 text-center" style="color: #00bfff;">@Model.Email</h5>
+
+                <form method="post">
+                    <input type="hidden" asp-for="UserId" />
+                    <input type="hidden" asp-for="Email" />
+
                     <div class="card-body">
                         @for (int i = 0; i < Model.Roles.Count; i++)
                         {
-                            <div class="form-check m-2">
+                            <div class="form-check m-2 fs-5">
                                 <input type="hidden" asp-for="Roles[i].RoleId" />
                                 <input type="hidden" asp-for="Roles[i].RoleName" />
 
@@ -29,11 +67,11 @@
                             </div>
                         }
                     </div>
-                </div>
 
-                <button type="submit" class="btn btn-lg btn-success mt-3">Guardar Cambios</button>
-                <a asp-controller="Admin" asp-action="Index" class="btn btn-secondary mt-3">Cancelar</a>
-            </form>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Guardar Cambios</button>
+                    <a asp-controller="Admin" asp-action="Index" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+                </form>
+            </div>
         </div>
     </div>
 </div>
