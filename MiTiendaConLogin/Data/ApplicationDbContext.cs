@@ -4,13 +4,15 @@ using MiTiendaConLogin.Models;
 
 namespace MiTiendaConLogin.Data;
 
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
-    // AÑADE ESTA LÍNEA:
+    
     public DbSet<Product> Products { get; set; }
+    public DbSet<Order> Orders { get; set; }
 }

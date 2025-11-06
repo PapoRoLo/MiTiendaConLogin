@@ -40,8 +40,15 @@
                                 </a>
                             </li>
                         }
+                        
+                        @if (User.IsInRole("Admin") || User.IsInRole("OrderManager"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Orders" asp-action="Index">Gestionar Pedidos</a>
+                            </li>
+                        }
                     </ul>
-                    <partial name="_LoginPartial" />
+                    <partial name="~/Areas/Identity/Pages/Account/_LoginPartial.cshtml" />
                 </div>
             </div>
         </nav>

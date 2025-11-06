@@ -1,4 +1,5 @@
-﻿@page
+﻿
+@page
 @model RegisterModel
 @{
     ViewData["Title"] = "Registrar";
@@ -72,6 +73,12 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
                 
                 <div class="form-floating mb-3">
+                    <input asp-for="Input.Nombre" class="form-control" autocomplete="name" aria-required="true" />
+                    <label asp-for="Input.Nombre" style="color: #a0a8b9;">Nombre</label>
+                    <span asp-validation-for="Input.Nombre" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
                     <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
                     <label asp-for="Input.Email" class="form-label">Correo electrónico</label>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
@@ -90,7 +97,7 @@
                 </div>
                 
                 <div>
-                    <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary mb-3">Registrar</button>
+                    <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary mb-3">Registrarse</button>
                 </div>
 
                 <p class="text-center">
