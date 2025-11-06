@@ -10,7 +10,13 @@ namespace MiTiendaConLogin.Models
         public string? CustomerEmail { get; set; }
 
         [Display(Name = "Fecha de Orden")]
-        public DateTime OrderDate { get; set; }
+        public DateTime OrderDate { get; set; } // <-- Cuándo se hizo el pedido
+
+        [Display(Name = "Fecha de Entrega/Retiro")]
+        public DateTime RequestedDeliveryDate { get; set; }
+
+        [Display(Name = "Notas del Pedido")]
+        public string? Notes { get; set; }
 
         [Display(Name = "Total")]
         public decimal Total { get; set; }
@@ -21,5 +27,8 @@ namespace MiTiendaConLogin.Models
         // Nota: Esto es un modelo simple. 
         // Más adelante, podríamos añadir una lista de "OrderDetails" 
         // para saber QUÉ productos compró.
+       
+        // Esta línea "conecta" la orden con sus detalles
+        public List<OrderDetail>? OrderDetails { get; set; }
     }
 }

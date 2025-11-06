@@ -15,7 +15,7 @@ namespace MiTiendaConLogin.Models
 
         // --- AÑADE ESTAS DOS PROPIEDADES ---
 
-        public int Stock { get; set; } // <-- Para el inventario
+        public int? Stock { get; set; } // <-- Para el inventario
 
         [NotMapped] // <-- No guarda esto en la BD
         public IFormFile? ImageFile { get; set; } // <-- Para el formulario de subida
