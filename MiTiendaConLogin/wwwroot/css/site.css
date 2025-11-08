@@ -63,6 +63,39 @@ body {
 }
 
 .card-body, .card-title, .card-text, .card-subtitle {
-    color: #212529; /* Color de texto oscuro por defecto */
+    color: #ffffff; /* Color de texto oscuro por defecto */
 }
 
+/*
+ * Estilos personalizados para inputs con tema oscuro (placeholder)
+ * Hecho para sobrescribir los estilos de Bootstrap en tema oscuro.
+ */
+.form-control.bg-dark.text-light::placeholder,
+.form-control.bg-dark.text-light:-ms-input-placeholder, /* IE 10+ */
+.form-control.bg-dark.text-light::-ms-input-placeholder { /* Edge */
+    color: #bbb !important; /* Un gris más claro para que se vea */
+    opacity: 1 !important; /* Asegura que no esté transparente */
+}
+
+.form-control.bg-dark.text-light {
+    color: #fff !important; /* Asegura que el texto escrito sea blanco */
+    background-color: #343a40 !important; /* Un fondo oscuro de Bootstrap */
+    border-color: #495057 !important; /* Un borde ligeramente más claro */
+}
+/* Widget Fijo para el Reloj (Esquina inferior derecha)
+*/
+.clock-widget {
+  position: fixed;         /* Fijo en la pantalla */
+  bottom: 10px;            /* 10px desde abajo */
+  right: 15px;             /* 15px desde la derecha */
+
+  padding: 5px 12px;       /* Relleno interno */
+  border-radius: 5px;      /* Bordes redondeados */
+
+  background-color: #212529; /* Color bg-dark de Bootstrap */
+  border: 1px solid #444;    /* Un borde sutil */
+  color: #0dcaf0;           /* Color text-info (cyan) */
+
+  font-size: 0.9em;          /* Un poco más pequeño */
+  z-index: 1010;           /* Asegura que flote sobre todo */
+}

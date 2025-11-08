@@ -19,5 +19,10 @@ namespace MiTiendaConLogin.Models
 
         [NotMapped] // <-- No guarda esto en la BD
         public IFormFile? ImageFile { get; set; } // <-- Para el formulario de subida
+
+        [Display(Name = "Categoría")]
+        public int? CategoryId { get; set; } // La llave foránea
+
+        public Category? Category { get; set; } // La "propiedad de navegación"
     }
 }

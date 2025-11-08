@@ -1,56 +1,109 @@
 @model IEnumerable<MiTiendaConLogin.Models.Product>
+@using MiTiendaConLogin.Models <!--  Para poder usar Category -->
 
 @{
-    ViewData["Title"] = "Gestionar Productos";
+    ViewData["Title"] = "Catálogo de Productos";
+    // Recuperamos los filtros actuales
+    var currentCategory = ViewData["CurrentCategory"] as int?;
+    var categories = ViewData["Categories"] as List<Category> ?? new List<Category>();
 }
 
-<div style="color: #e0e6f1;"> 
-    <h1 class="my-4">Gestionar Productos</h1>
+<div class="container text-light">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-light">@ViewData["Title"]</h1>
+        @if (User.IsInRole("Admin") || User.IsInRole("ProductManager"))
+        {
+            <a asp-action="Create" class="btn btn-primary">Crear Nuevo Producto</a>
+        }
+    </div>
 
-    <p>
-        <a asp-action="Create" class="btn btn-success mb-3">
-            <i class="fas fa-plus"></i> Crear Nuevo Producto
-        </a>
-    </p>
+    <div class="row">
+        
+        <div class="col-md-3">
+            <h4 class="text-light">Categorías</h4>
+            <div class="list-group list-group-dark">
+                
+                <a asp-action="Index" 
+                   asp-route-searchString="@ViewData["CurrentFilter"]" 
+                   class="list-group-item list-group-item-action @(currentCategory == null ? "active" : "")">
+                    Mostrar Todos
+                </a>
+
+                @foreach (var category in categories)
+                {
+                    <a asp-action="Index" 
+                       asp-route-categoryId="@category.Id" 
+                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                       class="list-group-item list-group-item-action @(currentCategory == category.Id ? "active" : "")">
+                        @category.Name
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="row">
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card bg-dark text-light border-secondary h-100">
+                            <img src="@(item.ImageUrl ?? "/images/default.jpg")" class="card-img-top" alt="@item.Name" style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@item.Name</h5>
+                                <h4 class="card-text text-info">@item.Price.ToString("C")</h4>
+
+                                @if (User.IsInRole("Admin") || User.IsInRole("ProductManager"))
+                                {
+                                    @if (item.Stock != null && item.Stock > 0)
+                                    {
+                                        <p class="card-text text-success small">En Stock: @item.Stock</p>
+                                    }
+                                    else if (item.Stock == null)
+                                    {
+                                        <p class="card-text text-muted small">Hecho bajo pedido</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text text-danger small">Agotado</p>
+                                    }
+                                }
+
+                                <div class="mt-auto">
+                                    @if (User.IsInRole("Admin") || User.IsInRole("ProductManager"))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-light">Editar</a>
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Detalles</a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Borrar</a>
+                                    }
+                                    else
+                                    {
+                                        @if (item.Stock == null || (item.Stock.HasValue && item.Stock > 0))
+                                        {
+                                            <form asp-controller="Cart" asp-action="AddToCart" asp-route-id="@item.Id" method="post">
+                                                <button type="submit" class="btn btn-primary w-100">
+                                                    Añadir al Pedido 🛒
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary w-100" disabled>Agotado</button>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (!Model.Any())
+                {
+                    <div class="col-12">
+                        <p class="text-muted">No se encontraron productos que coincidan con los filtros.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
-
-<table class="table table-dark table-striped table-hover">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th> Imagen </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Stock)
-            </th>
-            <th>Acciones</th> 
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                <img src="@item.ImageUrl" alt="@item.Name" style="width: 75px; height: 75px; object-fit: cover; border-radius: 5px;" />
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Stock)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-info">Editar</a> 
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-secondary">Detalles</a> 
-                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>

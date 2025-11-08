@@ -43,5 +43,11 @@ namespace MiTiendaConLogin.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        // Le dice a la aplicación que renderice la vista "Privacy.cshtml".
+        public IActionResult Privacy()
+        {
+            return View();
+        }
     }
 }

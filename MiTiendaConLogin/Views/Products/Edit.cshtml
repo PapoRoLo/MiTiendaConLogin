@@ -4,87 +4,60 @@
     ViewData["Title"] = "Editar Producto";
 }
 
-<style>
-    .card-futuristic {
-        background: linear-gradient(135deg, #1f2a40, #0a0e14);
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        color: #e0e6f1;
-        padding: 30px;
-        border: 1px solid #0056b3;
-    }
-    .card-futuristic h4,
-    .card-futuristic label {
-        color: #e0e6f1;
-    }
-    .card-futuristic .form-control,
-    .card-futuristic .form-control:focus {
-        background-color: rgba(31, 42, 64, 0.7);
-        border: 1px solid #007bff;
-        color: #e0e6f1;
-        border-radius: 8px;
-    }
-    .card-futuristic .form-control::placeholder {
-        color: #a0a8b9;
-    }
-    .card-futuristic .form-control[type="file"] {
-        background-color: rgba(31, 42, 64, 0.7);
-    }
-    .card-futuristic .btn-primary {
-        background: linear-gradient(90deg, #007bff, #0056b3);
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    .card-futuristic .btn-primary:hover {
-        background: linear-gradient(90deg, #0056b3, #007bff);
-        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
-    }
-</style>
+<div class="container text-light">
+    <h1 class="text-light">Editar Producto</h1>
+    <hr />
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="form-floating mb-3">
+                    <input asp-for="Name" class="form-control bg-dark text-light" placeholder="Nombre" style="background-color: #2c2f33 !important; color: #fff !important; border-color: #555;" />
+                    <label asp-for="Name" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-7">
-            
-            <div class="card card-futuristic mt-5">
-                <h4 class="my-3 text-center">Editar Producto</h4>
-
-                <form asp-action="Edit" enctype="multipart/form-data">
-                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                    <input type="hidden" asp-for="Id" />
-                    <input type="hidden" asp-for="ImageUrl" /> <div class="form-floating mb-3">
-                        <input asp-for="Name" class="form-control" placeholder="Nombre" />
-                        <label asp-for="Name" style="color: #a0a8b9;"></label>
-                        <span asp-validation-for="Name" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Price" class="form-control" placeholder="Precio" />
-                        <label asp-for="Price" style="color: #a0a8b9;"></label>
-                        <span asp-validation-for="Price" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Stock" class="form-control" placeholder="Stock" type="number" />
-                        <label asp-for="Stock" style="color: #a0a8b9;"></label>
-                        <span asp-validation-for="Stock" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="ImageFile" class="form-label">Cambiar Imagen</label>
-                        <input asp-for="ImageFile" class="form-control" type="file" accept="image/*" />
-                        <span asp-validation-for="ImageFile" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Imagen Actual</label><br/>
-                        <img src="@Model.ImageUrl" width="100" class="img-thumbnail bg-dark border-info" />
-                    </div>
-
-                    <div class="form-group mt-4">
-                        <input type="submit" value="Guardar Cambios" class="btn btn-primary w-100" />
-                        <a asp-action="Index" class="btn btn-secondary w-100 mt-2">Volver a la Lista</a>
-                    </div>
-                </form>
-            </div>
+                <div class="form-floating mb-3">
+                    <select asp-for="CategoryId" class="form-select bg-dark text-light" 
+                            asp-items="ViewBag.CategoryId"
+                            style="background-color: #2c2f33 !important; color: #fff !important; border-color: #555;">
+                        <option value="">-- Seleccionar Categoría --</option>
+                    </select>
+                    <label asp-for="CategoryId" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Price" class="form-control bg-dark text-light" placeholder="Precio" style="background-color: #2c2f33 !important; color: #fff !important; border-color: #555;" />
+                    <label asp-for="Price" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                <div class="mb-3">
+                    <label class="form-label" style="color: #a0a8b9;">Subir Imagen (Opcional)</label>
+                    <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;" alt="Imagen actual">
+                    <input type="file" name="ImageFile" class="form-control bg-dark text-light" style="background-color: #2c2f33 !important; color: #fff !important; border-color: #555;" />
+                </div>
+                }
+                
+                <div class="form-floating mb-3">
+                    <input asp-for="Stock" class="form-control bg-dark text-light" placeholder="Stock" style="background-color: #2c2f33 !important; color: #fff !important; border-color: #555;" />
+                    <label asp-for="Stock" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="Stock" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mt-3">
+                    <input type="submit" value="Guardar" class="btn btn-primary" />
+                    <a asp-controller="Products" asp-action="Index" class="btn btn-outline-light">Cancelar</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

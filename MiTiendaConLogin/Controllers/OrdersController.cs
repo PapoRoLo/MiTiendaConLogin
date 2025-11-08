@@ -2,158 +2,287 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization; // <-- Autorización
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;      // <-- Para el .Include()
+using Microsoft.EntityFrameworkCore;
 using MiTiendaConLogin.Data;
 using MiTiendaConLogin.Models;
 
-[Authorize(Roles = "Admin,OrderManager")] // <-- ¡Seguridad lista!
-public class OrdersController : Controller
+//
+// ▼ ▼ ▼ ¡ESTA ERA LA LÍNEA QUE FALTABA! ▼ ▼ ▼
+//
+namespace MiTiendaConLogin.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public OrdersController(ApplicationDbContext context)
+    [Authorize(Roles = "Admin,OrderManager")] // ¡Seguridad lista!
+    public class OrdersController : Controller
     {
-        _context = context;
-    }
-
-    // GET: Orders (La lista principal)
-    public async Task<IActionResult> Index()
-    {
-        // Ordenamos por fecha, los más nuevos primero
-        return View(await _context.Orders.OrderByDescending(o => o.OrderDate).ToListAsync());
-    }
-
-    // GET: Orders/Details/5
-    // ESTA ES LA LÓGICA CLAVE QUE TE MENCIONÉ
-    public async Task<IActionResult> Details(int? id)
-    {
-        if (id == null)
+        // ESTE ES NUESTRO "MINI-MODELO" PARA LA VISTA DE EDICIÓN
+        public class OrderEditViewModel
         {
-            return NotFound();
-        }
-
-        var order = await _context.Orders
-            .Include(o => o.OrderDetails!)         // <-- Incluye la lista de detalles
-                .ThenInclude(d => d.Product)      // <-- Por cada detalle, incluye el Producto
-            .FirstOrDefaultAsync(m => m.Id == id);
+            public int Id { get; set; }
+            public string? CustomerEmail { get; set; } // Para mostrar a quién pertenece
+            public DateTime OrderDate { get; set; }    // Para mostrar cuándo se hizo
+            public string? Status { get; set; }          // El estado actual (que vamos a cambiar)
             
-        if (order == null)
-        {
-            return NotFound();
+            // La lista de opciones for el menú desplegable
+            public List<SelectListItem>? StatusList { get; set; } 
         }
 
-        return View(order);
-    }
+        private readonly ApplicationDbContext _context;
 
-    // GET: Orders/Create
-    public IActionResult Create()
-    {
-        // El Admin no debería "crear" órdenes manualmente, 
-        // pero dejamos esto por si necesita añadir una orden telefónica.
-        return View();
-    }
-
-    // POST: Orders/Create
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,CustomerEmail,OrderDate,RequestedDeliveryDate,Notes,Total,Status")] Order order)
-    {
-        if (ModelState.IsValid)
+        public OrdersController(ApplicationDbContext context)
         {
-            _context.Add(order);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-        return View(order);
-    }
-
-    // GET: Orders/Edit/5
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id == null)
-        {
-            return NotFound();
+            _context = context;
         }
 
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
+        // GET: Orders (Ahora solo pedidos ACTIVOS)
+        public async Task<IActionResult> Index()
         {
-            return NotFound();
-        }
-        return View(order);
-    }
+            // Definimos los estados "activos"
+            var activeStuses = new List<string> { "Pendiente", "En Producción", "Listo para Retirar" };
 
-    // POST: Orders/Edit/5
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,CustomerEmail,OrderDate,RequestedDeliveryDate,Notes,Total,Status")] Order order)
-    {
-        if (id != order.Id)
-        {
-            return NotFound();
+            var activeOrders = await _context.Orders
+                .Where(o => o.Status != null && activeStuses.Contains(o.Status))
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return View(activeOrders);
         }
 
-        if (ModelState.IsValid)
+        // GET: Orders/History (NUEVO MÉTODO PARA EL HISTORIAL)
+        public async Task<IActionResult> History()
         {
-            try
+            // Definimos los estados "inactivos"
+            var inactiveStatuses = new List<string> { "Completado", "Cancelado" };
+
+            var pastOrders = await _context.Orders
+                .Where(o => o.Status != null && inactiveStatuses.Contains(o.Status))
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return View(pastOrders);
+        }
+
+        // GET: Orders/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
             {
-                _context.Update(order);
+                return NotFound();
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails!)         // El '!' arregla el error CS8620
+                    .ThenInclude(d => d.Product)      
+                .FirstOrDefaultAsync(m => m.Id == id);
+                
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return View(order);
+        }
+
+        // GET: Orders/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: Orders/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,CustomerEmail,OrderDate,RequestedDeliveryDate,Notes,Total,Status")] Order order)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(order);
                 await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(order.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return View(order);
+        }
+
+        // GET: Orders/Edit/5 (NUEVA VERSIÓN CON BLOQUEO)
+public async Task<IActionResult> Edit(int? id)
+{
+    if (id == null)
+    {
+        return NotFound();
+    }
+
+    var order = await _context.Orders.FindAsync(id);
+    if (order == null)
+    {
+        return NotFound();
+    }
+
+    // --- ¡AQUÍ ESTÁ LA LÓGICA DE TU IDEA! ---
+    // Si el pedido está "Completado" O "Cancelado"...
+    if (order.Status == "Completado" || order.Status == "Cancelado")
+    {
+        // ...Y el usuario actual NO es un Admin...
+        if (!User.IsInRole("Admin"))
+        {
+            // ...¡Bloquéalo!
+            TempData["ErrorMessage"] = $"El pedido #{order.Id} ya está '{order.Status}' y solo un Administrador puede modificarlo.";
             return RedirectToAction(nameof(Index));
         }
-        return View(order);
     }
+    // --- FIN DEL BLOQUEO ---
 
-    // GET: Orders/Delete/5
-    public async Task<IActionResult> Delete(int? id)
+    // Si eres Admin (o el pedido no está completado), puedes continuar.
+    var statusOptions = new List<string> 
+    { 
+        "Pendiente", 
+        "En Producción", 
+        "Listo para Retirar", 
+        "Completado", 
+        "Cancelado" 
+    };
+
+    var viewModel = new OrderEditViewModel
     {
-        if (id == null)
+        Id = order.Id,
+        CustomerEmail = order.CustomerEmail,
+        OrderDate = order.OrderDate,
+        Status = order.Status,
+        StatusList = statusOptions.Select(s => new SelectListItem
         {
-            return NotFound();
-        }
+            Text = s,
+            Value = s,
+            Selected = (s == order.Status)
+        }).ToList()
+    };
 
-        var order = await _context.Orders
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (order == null)
-        {
-            return NotFound();
-        }
+    return View(viewModel);
+}
 
-        return View(order);
-    }
-
-    // POST: Orders/Delete/5
-    [HttpPost, ActionName("Delete")]
+        // POST: Orders/Edit/5 (¡VERSIÓN FINAL CON DEDUCCIÓN Y REVERSIÓN!)
+    [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+    public async Task<IActionResult> Edit(int id, OrderEditViewModel viewModel)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order != null)
+        if (id != viewModel.Id)
         {
-            _context.Orders.Remove(order);
+            return NotFound();
         }
 
-        await _context.SaveChangesAsync();
+        // Buscamos la orden original, INCLUYENDO los productos
+        var orderToUpdate = await _context.Orders
+            .Include(o => o.OrderDetails!)
+                .ThenInclude(d => d.Product)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (orderToUpdate == null)
+        {
+            return NotFound();
+        }
+
+        // --- DOBLE CHEQUEO DE SEGURIDAD (para el empleado "travieso") ---
+        if (orderToUpdate.Status == "Completado" || orderToUpdate.Status == "Cancelado")
+        {
+            if (!User.IsInRole("Admin"))
+            {
+                // Si un OrderManager envía un POST manual, lo bloqueamos.
+                TempData["ErrorMessage"] = "Acción no autorizada.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+        // --- FIN DEL DOBLE CHEQUEO ---
+
+
+        // --- LÓGICA DE INVENTARIO (CON REVERSIÓN DE ADMIN) ---
+
+        // Caso 1: Se está marcando como "Completado" (y antes no lo era)
+        // ¡RESTAMOS STOCK!
+        if (viewModel.Status == "Completado" && orderToUpdate.Status != "Completado")
+        {
+            foreach (var detail in orderToUpdate.OrderDetails!)
+            {
+                if (detail.Product != null && detail.Product.Stock != null)
+                {
+                    detail.Product.Stock -= detail.Quantity;
+                }
+            }
+        }
+        
+        // Caso 2: Estaba "Completado" y el Admin lo está revirtiendo
+        // ¡SUMAMOS STOCK DE VUELTA!
+        else if (viewModel.Status != "Completado" && orderToUpdate.Status == "Completado")
+        {
+            foreach (var detail in orderToUpdate.OrderDetails!)
+            {
+                if (detail.Product != null && detail.Product.Stock != null)
+                {
+                    detail.Product.Stock += detail.Quantity; // <-- ¡Usamos += para sumar!
+                }
+            }
+        }
+        
+        // --- FIN DE LÓGICA DE INVENTARIO ---
+
+        // Actualizamos el estado de la orden
+        orderToUpdate.Status = viewModel.Status;
+
+        try
+        {
+            // Guardamos todos los cambios (el estado de la Orden Y el stock de los Productos)
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!OrderExists(orderToUpdate.Id))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
+        
         return RedirectToAction(nameof(Index));
     }
 
-    private bool OrderExists(int id)
-    {
-        return _context.Orders.Any(e => e.Id == id);
+        // GET: Orders/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var order = await _context.Orders
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return View(order);
+        }
+
+        // POST: Orders/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order != null)
+            {
+                _context.Orders.Remove(order);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool OrderExists(int id)
+        {
+            return _context.Orders.Any(e => e.Id == id);
+        }
     }
 }

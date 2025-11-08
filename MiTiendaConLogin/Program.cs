@@ -3,8 +3,31 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiTiendaConLogin.Data;
 using MiTiendaConLogin.Models;
+using System.Globalization;
+using SendGrid.Extensions.DependencyInjection; // Para SendGrid
+using MiTiendaConLogin.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 1. Cargar la configuración de SendGrid desde User Secrets
+var sendGridKey = builder.Configuration["SendGridKey"];
+
+// 2. Registrar el servicio de SendGrid en la aplicación
+builder.Services.AddSendGrid(options =>
+{
+    options.ApiKey = sendGridKey;
+});
+
+// 3. Registrar NUESTRO servicio (IEmailSender)
+builder.Services.AddTransient<IAppEmailSender, SendGridEmailSender>();
+
+// --- ESTE BLOQUE PARA LA CULTURA ---
+var cultureInfo = new CultureInfo("es-CR");
+cultureInfo.NumberFormat.CurrencySymbol = "₡"; // Forzar el símbolo de Colón
+
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+// --- FIN DEL BLOQUE ---
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -16,6 +39,16 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>() ;
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddRazorPages();
+
+builder.Services.AddDistributedMemoryCache(); // Añade un lugar en memoria para guardar la sesión
+builder.Services.AddSession(options =>        // Habilita el servicio de sesión
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // El carrito se borra si está inactivo 30 min
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -36,11 +69,13 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession(); // ¡Activa la sesión!
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Products}/{action=Index}/{id?}");
 app.MapRazorPages();
 
 // ------------- INICIO DE CÓDIGO PARA CREAR ROLES -------------

@@ -1,0 +1,74 @@
+@model MiTiendaConLogin.Models.CheckoutViewModel
+@{
+    ViewData["Title"] = "Confirmar Pedido";
+}
+
+<div class="container text-light">
+    
+    <h1 class="text-light">@ViewData["Title"]</h1>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+<p class="mb-3">
+    <p class="text-muted">Ya casi terminamos. Por favor, danos tu información de contacto para gestionar tu pedido.</p>
+    <hr/>
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Index" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Name" class="form-control" placeholder="Nombre" />
+                    <label asp-for="Name" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Email" class="form-control" placeholder="Email" />
+                    <label asp-for="Email" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Phone" class="form-control" placeholder="Teléfono" />
+                    <label asp-for="Phone" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="RequestedDeliveryDate" class="form-control" />
+                    <label asp-for="RequestedDeliveryDate" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="RequestedDeliveryDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <textarea asp-for="Notes" class="form-control" placeholder="Notas" style="height: 100px;"></textarea>
+                    <label asp-for="Notes" class="form-label" style="color: #a0a8b9;"></label>
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+
+                <hr/>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    Confirmar mi Pedido
+                </button>
+            </form>
+        </div>
+
+        <div class="col-md-6">
+            <h4 class="text-light">Tu Pedido</h4>
+            <p class="text-muted">Esto es lo que procesaremos. ¡Revisa que esté correcto!</p>
+            </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

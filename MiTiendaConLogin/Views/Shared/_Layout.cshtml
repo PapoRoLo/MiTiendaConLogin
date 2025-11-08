@@ -7,46 +7,84 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MiTiendaConLogin.styles.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 sticky-top">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Corteza Dorada</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Products" asp-action="Index">Corteza Dorada</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+
+                        @{
+                    // Definimos los roles para simplificar
+                    bool isAdmin = User.IsInRole("Admin");
+                    bool isProductManager = User.IsInRole("ProductManager");
+                    bool isOrderManager = User.IsInRole("OrderManager");
+                    bool isManager = isAdmin || isProductManager || isOrderManager;
+                }
+
+                @if (isManager)
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="managementDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" 
+                           style="color: #ffc107 !important; font-weight: bold;">
+                            Panel de Gestión
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="managementDropdown">
+                            @if (isAdmin)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">Gestionar Usuarios (Admin)</a></li>
+                            }
+                            @if (isAdmin || isProductManager)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Products" asp-action="Index">Gestionar Productos</a></li>
+                            }
+                            @if (isAdmin)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Categories" asp-action="Index">Gestionar Categorías</a></li>
+                            }
+                            @if (isAdmin || isOrderManager)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Orders" asp-action="Index">Pedidos Activos</a></li>
+                                <li><a class="dropdown-item" asp-controller="Orders" asp-action="History">Historial de Pedidos</a></li>
+                            }
+
+                            @if (isAdmin || isOrderManager)
+                            {
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Reportes" asp-action="Index">Reportes de Ventas</a></li>
+                            }
+                        </ul>
+                    </li>
+                }
+                    </ul>
+
+                    <form class="d-flex mx-auto" asp-controller="Products" asp-action="Index" method="get" style="width: 300px;">
+                    <input class="form-control me-2 bg-dark text-light" 
+                           type="search" 
+                           placeholder="Buscar producto..." 
+                           aria-label="Buscar" 
+                           name="searchString"
+                           value="@Context.Request.Query["searchString"]"
+                           style="background-color: #2c2f33 !important; color: #fff !important; border-color: #555;">
+                    <button class="btn btn-outline-light" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link text-light" asp-controller="Cart" asp-action="Index">
+                                Mi Pedido 🛒
+                            </a>
                         </li>
-
-                        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Admin" asp-action="Index" style="color: #ffc107 !important; font-weight: bold;">
-                                    PANEL ADMIN
-                                </a>
-                            </li>
-                        }
-
-                        @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("ProductManager")))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Products" asp-action="Index" style="color: #17a2b8 !important;">
-                                    Gestionar Productos
-                                </a>
-                            </li>
-                        }
-                        
-                        @if (User.IsInRole("Admin") || User.IsInRole("OrderManager"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Orders" asp-action="Index">Gestionar Pedidos</a>
-                            </li>
-                        }
                     </ul>
                     <partial name="~/Areas/Identity/Pages/Account/_LoginPartial.cshtml" />
                 </div>
@@ -60,13 +98,46 @@
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Corteza Dorada - <a asp-area="" asp-controller="Home" asp-action="Privacy"></a>
+        <div class="container text-light">
+            &copy; 2025 - Corteza Dorada - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    <div class="clock-widget" id="reloj-widget">
+        --:--:--
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        function actualizarReloj() {
+            // Obtenemos la hora local del cliente
+            var ahora = new Date();
+            
+            // Formateamos la fecha (ej. 7/11/2025)
+            var fecha = ahora.toLocaleDateString('es-CR'); // 'es-CR' para Costa Rica
+            
+            // Formateamos la hora (ej. 12:40:30 PM)
+            var hora = ahora.toLocaleTimeString('en-US', { hour12: true });
+
+            // Juntamos todo
+            var textoReloj = fecha + " - " + hora;
+            
+            // Lo ponemos en la barra de navegación
+            var elementoReloj = document.getElementById('reloj-widget');
+            if (elementoReloj) {
+                elementoReloj.innerText = textoReloj;
+            }
+        }
+
+        // Hacemos que el reloj se actualice solo cada segundo
+        setInterval(actualizarReloj, 1000);
+        
+        // Lo ejecutamos una vez al cargar la página
+        actualizarReloj();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
