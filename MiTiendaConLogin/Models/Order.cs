@@ -10,7 +10,7 @@ namespace MiTiendaConLogin.Models
         public string? CustomerEmail { get; set; }
 
         [Display(Name = "Fecha de Orden")]
-        public DateTime OrderDate { get; set; } // <-- Cuándo se hizo el pedido
+        public DateTime OrderDate { get; set; } = DateTime.UtcNow; // <-- Cuándo se hizo el pedido
 
         [Display(Name = "Fecha de Entrega/Retiro")]
         public DateTime RequestedDeliveryDate { get; set; }

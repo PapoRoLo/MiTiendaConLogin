@@ -30,6 +30,18 @@ namespace MiTiendaConLogin.Services
             var to = new EmailAddress(toEmail);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
 
+            await _sendGridClient.SendEmailAsync(msg);
+        }
+
+
+        public async Task SendEmailWithTemplateAsync(string toEmail, string templateId, object templateData)
+        {
+            var from = new EmailAddress(_fromEmail, _fromName);
+            var to = new EmailAddress(toEmail);
+
+            // Crea el mensaje usando una plantilla dinámica
+            var msg = MailHelper.CreateSingleTemplateEmail(from, to, templateId, templateData);
+
             // Envía el correo
             await _sendGridClient.SendEmailAsync(msg);
         }

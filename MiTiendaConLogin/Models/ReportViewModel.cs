@@ -36,6 +36,9 @@ namespace MiTiendaConLogin.Models
         public ReportSummary DefaultSummary { get; set; } = new ReportSummary();
 
         // Esta parte solo se llenará si el usuario hace una consulta
-        public CustomReportResult? CustomResult { get; set; } 
+        public CustomReportResult? CustomResult { get; set; }
+
+        // Aquí guardaremos las órdenes individuales de la consulta
+        public List<Order> IndividualOrders { get; set; } = new List<Order>();
     }
 }

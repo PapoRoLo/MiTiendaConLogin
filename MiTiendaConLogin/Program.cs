@@ -6,6 +6,7 @@ using MiTiendaConLogin.Models;
 using System.Globalization;
 using SendGrid.Extensions.DependencyInjection; // Para SendGrid
 using MiTiendaConLogin.Services;
+using Npgsql.EntityFrameworkCore; // Para PostgreSQL
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,9 +32,14 @@ CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// 1. Cargar la NUEVA cadena de conexión de PostgreSQL (desde los User Secrets)
+var postgresConnectionString = builder.Configuration.GetConnectionString("PostgresConnection")
+    ?? throw new InvalidOperationException("Connection string 'PostgresConnection' not found in User Secrets.");
+
+// 2. Usar Npgsql (PostgreSQL) en lugar de Sqlite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+    options.UseNpgsql(postgresConnectionString)
+);
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
@@ -115,5 +121,36 @@ using (var scope = app.Services.CreateScope())
     }
 }
 // ------------- FIN DE CÓDIGO PARA CREAR ROLES -------------
+// --- 1. Definición de la función para sembrar la BD ---
+async Task SeedDatabase(IHost app)
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            // Obtener los servicios de Roles y Usuarios
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
+            // Crear nuestro RoleSeeder pasándole los servicios
+            var roleSeeder = new RoleSeeder(roleManager, userManager);
+            
+            // Ejecutar la lógica (crear roles y asignar admin)
+            await roleSeeder.SeedRolesAsync();
+        }
+        catch (Exception ex)
+        {
+            // Opcional: registrar el error si falla
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "Ocurrió un error al sembrar los roles.");
+        }
+    }
+}
+
+// --- 2. Llamada a la función para que se ejecute al arrancar ---
+await SeedDatabase(app);
+
+
+// --- 3. Esta línea ya existe (es la última) ---
 app.Run();

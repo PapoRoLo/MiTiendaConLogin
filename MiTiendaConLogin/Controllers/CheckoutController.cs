@@ -6,6 +6,9 @@ using System.Text.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using MiTiendaConLogin.Services; // Para IEmailSender
+using SendGrid;
+using SendGrid.Helpers.Mail;
+using Microsoft.EntityFrameworkCore; 
 
 namespace MiTiendaConLogin.Controllers
 {
@@ -76,8 +79,8 @@ namespace MiTiendaConLogin.Controllers
             var order = new Order
             {
                 CustomerEmail = checkoutModel.Email,
-                OrderDate = DateTime.Now, // ¡La hora del servidor, no del cliente!
-                RequestedDeliveryDate = checkoutModel.RequestedDeliveryDate,
+                OrderDate = DateTime.UtcNow, // ¡La hora del servidor, no del cliente!
+                RequestedDeliveryDate = checkoutModel.RequestedDeliveryDate.ToUniversalTime(),
                 Notes = checkoutModel.Notes,
                 Status = "Pendiente", // ¡El estado inicial clave!
                 Total = cart.Sum(item => item.Subtotal),
@@ -101,24 +104,66 @@ namespace MiTiendaConLogin.Controllers
             _context.Orders.Add(order); // EF es lo bastante inteligente para guardar la Orden Y sus Detalles
             await _context.SaveChangesAsync();
 
-            // --- 5. ¡AQUÍ ENVIAMOS LOS CORREOS! ---
+            // Volvemos a cargar los detalles del pedido, pero INCLUYENDO el Producto
+            var orderDetailsWithProducts = await _context.OrderDetails
+                .Where(d => d.OrderId == order.Id)
+                .Include(d => d.Product)
+                .ToListAsync();
+    
+
+            // --- 5. ¡AQUÍ ENVIAMOS LOS CORREOS (CON PLANTILLAS)! ---
             try
             {
-                // 5a. Correo para el Cliente
-                string customerSubject = $"Confirmación de Pedido #{order.Id} - Corteza Dorada";
-                string customerHtmlBody = $@"
-                <h1>¡Gracias por tu pedido, {checkoutModel.Name}!</h1>
-                <p>Hemos recibido tu pedido con el número <strong>#{order.Id}</strong>.</p>
-                <p>Nos pondremos en contacto contigo pronto al teléfono {checkoutModel.Phone} o a este correo para coordinar la entrega y el pago.</p>
-                <hr>
-                <p><strong>Total del Pedido:</strong> {order.Total.ToString("C")}</p>
-                <p><strong>Fecha Solicitada:</strong> {order.RequestedDeliveryDate.ToShortDateString()}</p>
-                <p><strong>Notas:</strong> {order.Notes}</p>";
+                // 5a. Correo para el Cliente (Usando tu Plantilla)
 
-                await _emailSender.SendEmailAsync(checkoutModel.Email, customerSubject, "Tu pedido ha sido recibido", customerHtmlBody);
+                // Lee el ID de la plantilla desde appsettings
+                string? templateId = _configuration["SendGrid:TemplateIdCliente"];
 
-                // 5b. Correo para el Admin/OrderManager
-                string adminEmail = _configuration["SendGrid:AdminNotificationEmail"];
+                // Prepara el objeto de datos. ¡Los nombres deben coincidir
+                // EXACTAMENTE con tus variables en SendGrid!
+                var templateDataCliente = new
+                {
+                    // Tus variables de la captura
+                    fecha_pedido = order.OrderDate.ToShortDateString(),
+                    nombre_cliente = checkoutModel.Name,
+                    email_cliente = checkoutModel.Email,
+                    numero_pedido = order.Id.ToString(),
+                    monto_total = order.Total.ToString("C"),
+
+                    // Estas son variables que yo asumí, puedes borrarlas
+                    // si no las usaste en tu plantilla
+                    nombre_empleado = "Equipo de Corteza Dorada",
+
+                    // --- Para el bucle de productos (si lo tienes) ---
+                    // SendGrid usa "items" para el bucle {{#each items}}
+                    items = orderDetailsWithProducts.Select(d => new
+                    {
+                        producto = d.Product?.Name ?? "Producto",
+                        cantidad = d.Quantity,
+                        precio = d.Price.ToString("C")
+                    }).ToList()
+                };
+
+                // ¡Un buen asunto para el correo!
+                string customerSubject = $"Tu pedido #{order.Id} de Corteza Dorada está confirmado";
+
+                // Le pasamos el asunto al método de SendGrid (aunque la plantilla lo puede sobreescribir)
+                // ¡No, espera! El método CreateDynamicTemplateEmail no usa asunto. El asunto se define en la plantilla.
+                // ¡Mejor! Vamos a crear el correo manualmente para poner asunto Y plantilla.
+
+                // --- Corrección: Creación manual para Asunto + Plantilla ---
+                var from = new EmailAddress(_configuration["SendGrid:FromEmail"], _configuration["SendGrid:FromName"]);
+                var to = new EmailAddress(checkoutModel.Email);
+                var msg = MailHelper.CreateSingleTemplateEmail(from, to, templateId, templateDataCliente);
+
+                // ¡Aquí definimos el Asunto!
+                msg.Subject = $"Tu pedido #{order.Id} de Corteza Dorada está confirmado";
+
+                await _emailSender.SendEmailWithTemplateAsync(checkoutModel.Email!, templateId!, templateDataCliente);
+
+
+                // 5b. Correo para el Admin (sigue usando el HTML simple)
+                string? adminEmail = _configuration["SendGrid:AdminNotificationEmail"];
                 if (!string.IsNullOrEmpty(adminEmail))
                 {
                     string adminSubject = $"¡Nuevo Pedido Recibido! #{order.Id}";
@@ -130,16 +175,20 @@ namespace MiTiendaConLogin.Controllers
                     <p><strong>Notas:</strong> {order.Notes}</p>
                     <p>Por favor, ingresa al panel de 'Pedidos Activos' para gestionarlo.</p>";
 
+                    // Necesitamos volver a añadir el método antiguo a la interfaz
+                    // O crear una plantilla para el admin...
+                    // Solución rápida: Modifiquemos la interfaz de nuevo.
+
+                    // (Veamos el siguiente paso para arreglar esto)
                     await _emailSender.SendEmailAsync(adminEmail, adminSubject, "Nuevo Pedido Recibido", adminHtmlBody);
                 }
             }
             catch (Exception ex)
             {
-                // Opcional: Registrar el error si el correo falla
-                // Por ahora, no detenemos al cliente si el correo falla.
+                // Opcional: Registrar el error
             }
             // --- FIN DEL ENVÍO DE CORREOS ---
-
+        
             // 6. Limpiar el carrito de la sesión
             ClearCartSession();
 
